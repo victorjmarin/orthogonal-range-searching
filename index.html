@@ -1,0 +1,126 @@
+<head>
+    <title>Database Queries as an Orthogonal Range Searching Problem</title>
+</head>
+
+<body>
+    <h2>Computational Geometry (CSCI 716)</h2>
+    <h1>Database Queries as an Orthogonal Range Searching Problem</h1>
+    Victor J. Marin (vxm4964/at/rit.edu)
+    
+    <p>My goal for this project was to get an understanding of how databases solve range queries efficiently by using space partitioning structures.</p>
+    
+    <hr>
+    
+    <h2>Background</h2>
+    
+    <p>Database queries typically include constraints over the attributes of the tuples to be retrieved. We might want that one or more attributes be equal to a certain value, or have a more relaxed query where some attributes lie within a certain range. A naive approach to solve such queries would be to scan all the tuples and check that all attributes are within the desired range. This would result in an algorithm of time complexity <i>O</i>(<i>n</i>*<i>a</i>), where <i>n</i> is the total number of tuples, and <i>a</i> is the number of attributes over which we are applying a constraint. However, we can consider the problem of solving a database query as a geometric one, where the constrained attributes constitute an <i>n</i>-dimensional space, and each tuple is a point in such space. Therefore, we can leverage theories of range searching to solve the query faster.</p>
+    
+    <hr>
+    
+   <h2>Problem input and output</h2>
+   
+   <p>Given a SQL range query including constraints on up to 3 fields, use a space partitioning structure to index and retrieve all elements satisfying the query.</p>
+   
+   <p>For example, for the following query involving range constraints on the fields rating and votes, we would like to report all movies lying within the red bounding box.</p>
+    
+    <code>SELECT * FROM movies WHERE rating BETWEEN 7 AND 8 AND votes BETWEEN 30 AND 60;</code>
+    
+    <br><br>
+    
+    <img src="rquery.png" alt="Range query" height="255" width="372">
+    
+        <hr>
+        
+    <h2>System Overview</h2>
+    
+    In order to learn how databases leverage space partitioning structures to solve range queries efficiently, I developed a simple "query engine". Then, I used movies in the <a href="http://www.imdb.com/interfaces/">IMDb</a> database to test it.
+    
+    <br><br>
+    
+    The engine performs the three following steps:
+    
+    <ol>
+        <li>Pre-compute indexes for the movies on selected fields (year, budget...)</li>
+        <li>Given a SQL range query, select an appropriate pre-computed index.</li>
+        <li>Use both the selected index (if any available) and a full-scan to answer the query and compare times.</li>
+    </ol>
+    
+    Each of the steps are described in more detail below.
+    
+    <h3>1. Pre-compute indexes on selected fields</h2>
+        
+        <p>We store the movies in a SQLite database. During initialization, the query engine will retrieve the movies in the database and build indexes. In particular, we build three indexes: a 1-D index on the year field, a 2-D index on the imdb_rating and imdb_votes fields, and a 3-D index on the budget, year and imdb_rating fields.</p>
+        
+        <img src="boot.png" alt="Startup" height="79" width="393">
+    
+    <h3>2. Given a SQL range query, select an appropriate pre-computed index</h2>
+        
+        <p>After the indexes have been built, the user is prompted to submit a range query. When the user enters a query, the query is parsed using <a href="http://www.antlr.org/">ANTLR4</a> in conjunction with a <a href="https://github.com/antlr/grammars-v4/blob/master/sqlite/SQLite.g4">SQLite grammar</a> to build an in-memory representation of the query. Then, the query engine attempts to find a matching index based on the fields in the query.</p>
+        
+    <h3>3. Use both the selected index (if any available) and a full-scan to answer the query and compare times</h2>
+    
+    <p>The last step involves using the selected index to answer the query. The query is also answered performing a full-scan of the data to check that the number of movies returned by the index is correct and compare running times.</p>
+    
+    <p>Below are the outputs when running three different queries with one, two and three constrained fields. We can notice how, as the number of fields increase, the speed up gained by using and index is considerably higher. In particular, the query is answered 5.72 times faster using an index for one constrained field; 58.21 times faster for two constrained fields, and 82.25 times faster for three constrained fields.</p>
+    
+    <p><b>Query on one constrained field</b></p>
+    
+    <img src="1dquery.png" alt="1D query" height="227" width="488">
+    
+    <p><b>Query on two constrained fields</b></p>
+    
+    <img src="2dquery.png" alt="2D query" height="226" width="790">
+        
+    <p><b>Query on three constrained fields</b></p>
+    
+    <img src="3dquery.png" alt="3D query" height="229" width="1007">
+        
+    <hr>
+    
+    <h2>Implementation details</h2>
+    
+    This section describes the strategies adopted to support indexes on up to 3 fields. The algorithms implemented are those described in the book <i>Computational Geometry: Algorithms and Applications. Third Edition.</i> The implementation is available at <a href="https://github.com/victorjmarin/orthogonal-range-searching">https://github.com/victorjmarin/orthogonal-range-searching</a>
+    
+    <h3>One-dimensional indexes</h3>
+    
+    Indexes on one dimension (field) are constructed using an <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL tree</a> structure, which is a kind of balanced binary tree. They have a <i>O</i>(<i>k</i> + log <i>n</i>) time complexity to report all points in a given range, where <i>k</i> is the number of points reported and <i>n</i> the total number of points. We modify <a href="http://commons.apache.org/proper/commons-math/javadocs/api-3.3/org/apache/commons/math3/geometry/partitioning/utilities/AVLTree.html">this</a> implementation to accept any comparator instead of relying on a comparable object so that we can build indexes on different fields. We use the customized implementation as a base for two- and three-dimensional indexes.
+    
+    <h3>Two-dimensional indexes</h3>
+    
+    Indexes on two dimensions (fields) are constructed using a 2-dimensional <a href="https://en.wikipedia.org/wiki/Range_tree">range tree</a> structure. A range tree is a multi-level structure comprised of several balanced binary trees. In the case of a 2-dimensional range tree, we first build an AVL tree on the first dimension, and link each of the nodes in the first dimensional to another AVL tree built on the second dimension. Thus, the time complexity to report all points in a range is <i>O</i>(<i>k</i> + log<sup>2</sup> <i>n</i>).
+    
+    <h3>Three-dimensional indexes</h3>
+    
+    Indexes on two dimensions (fields) are constructed using a 3-dimensional range tree. In this case, every node on the second dimension is linked to another AVL tree built on the third dimension. Therefore, their time complexity is <i>O</i>(<i>k</i> + log<sup>3</sup> <i>n</i>).
+    
+    <h3>Query times</h3>
+    
+    <p>Below are the query times for different numbers of movies using indexes of 1, 2 and 3 dimensions. At first sight, it might be shocking that the 3-dimensional index is consistently taking less time to answer queries when its complexity is superior. Recall, however, that the time complexity not only depends on the number of points <i>n</i>, but also on the number of reported points <i>k</i>. The one-dimensional index reported 46,000 movies on average, the two-dimensional index 2,700, and the three-dimensional index 20. Therefore, we can see that the three-dimensional index is reporting a considerably smaller number of movies and taking less time to answer the query in spite of the higher order logarithmic factor. The 1- and 2-dimensional indexes are taking similar times but the 1-dimensional is reporting many more movies.</p>
+    
+    <img src="time.png" alt="3D" height="420" width="560">
+    
+    <hr>
+    
+    <h2>Limitations and future work</h2>
+    
+    Potential improvements include:
+    
+        <ul>
+            <li>Support more than three dimensions (MySQL supports up to 16)</li>
+            <li>Optimize index construction</li>
+            <li>Reuse indexes when leftmost prefix matches</li>
+        </ul>
+    
+    <hr>
+    
+    <h2>References</h2>
+    
+        <ul>
+            <li>Computational Geometry: Algorithms and Applications. Third Edition. By Mark de Berg, Otfried Cheong, Marc van Kreveld, Mark Overmars</li>
+            <li><a href="https://www.cs.umd.edu/class/spring2012/cmsc754/Lects/cmsc754-lects.pdf">David M. Mount's Computational Geometry Lecture Notes (CMSC 754), University of Maryland</a></li>
+            <li><a href="https://www.cse.wustl.edu/~taoju/cse546/lectures/Lecture21_rangequery_2d.pdf">https://www.cse.wustl.edu/~taoju/cse546/lectures/Lecture21_rangequery_2d.pdf</a></li>
+            <li><a href="https://dev.mysql.com/doc/refman/5.7/en/mysql-indexes.html">How MySQL uses indexes</a></li>
+            <li><a href="https://github.com/hadley/data-movies">https://github.com/hadley/data-movies</a></li>
+        </ul>
+    
+</body>
