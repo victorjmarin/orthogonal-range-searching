@@ -9,14 +9,14 @@ public class Node3D<T> {
   public T element;
   public Node3D<T> left;
   public Node3D<T> right;
-  public NewRangeTree2D<T> yTree;
+  public RangeTree2D<T> yTree;
   public AVLTree<T> zTree;
 
   public Node3D(final T element) {
     this.element = element;
   }
 
-  public Node3D(final T element, final NewRangeTree2D<T> yTree) {
+  public Node3D(final T element, final RangeTree2D<T> yTree) {
     this.element = element;
     this.yTree = yTree;
   }

@@ -8,8 +8,8 @@ import edu.rit.Movie;
 import edu.rit.db.IMDbSQLite;
 import edu.rit.index.Index;
 import edu.rit.index.Index1D;
-import edu.rit.index.tree.NewRangeTree2D;
-import edu.rit.index.tree.NewRangeTree3D;
+import edu.rit.index.tree.RangeTree2D;
+import edu.rit.index.tree.RangeTree3D;
 
 public class QueryEngine {
 
@@ -27,7 +27,7 @@ public class QueryEngine {
 
   public void buildIndexes() {
     build1DIndexYear();
-    build1DIndexLength();
+    // build1DIndexLength();
     build2DIndex();
     build3DIndex();
   }
@@ -57,8 +57,8 @@ public class QueryEngine {
   private void build2DIndex() {
     final long tic = System.currentTimeMillis();
     System.out.print("Building index on imdb_rating and imdb_votes... ");
-    final NewRangeTree2D<Movie> ratingVotesIndex =
-        new NewRangeTree2D<>(allMoviesLst, Movie::getRating, Movie::getVotes, Movie::getId);
+    final RangeTree2D<Movie> ratingVotesIndex =
+        new RangeTree2D<>(allMoviesLst, Movie::getRating, Movie::getVotes, Movie::getId);
     final IndexKey idxKey = new IndexKey(Table.MOVIES, Attribute.RATING, Attribute.VOTES);
     indexes.put(idxKey, ratingVotesIndex);
     final long toc = System.currentTimeMillis();
@@ -68,7 +68,7 @@ public class QueryEngine {
   private void build3DIndex() {
     final long tic = System.currentTimeMillis();
     System.out.print("Building index on budget, year and imdb_rating... ");
-    final NewRangeTree3D<Movie> budgetYearRatingIndex = new NewRangeTree3D<>(allMoviesLst,
+    final RangeTree3D<Movie> budgetYearRatingIndex = new RangeTree3D<>(allMoviesLst,
         Movie::getBudget, Movie::getYear, Movie::getRating, Movie::getId);
     final IndexKey idxKey =
         new IndexKey(Table.MOVIES, Attribute.BUDGET, Attribute.YEAR, Attribute.RATING);
@@ -102,7 +102,7 @@ public class QueryEngine {
           System.out.print("Running query using index... ");
           final Reference<T> xReference = query.referenceForX();
           final Reference<T> yReference = query.referenceForY();
-          final NewRangeTree2D<T> index2D = (NewRangeTree2D<T>) index;
+          final RangeTree2D<T> index2D = (RangeTree2D<T>) index;
           result = index2D.searchInRange(xReference.getLo(), xReference.getHi(), yReference.getLo(),
               yReference.getHi());
         }
@@ -115,7 +115,7 @@ public class QueryEngine {
           final Reference<T> xReference = query.referenceForX();
           final Reference<T> yReference = query.referenceForY();
           final Reference<T> zReference = query.referenceForZ();
-          final NewRangeTree3D<T> index3D = (NewRangeTree3D<T>) index;
+          final RangeTree3D<T> index3D = (RangeTree3D<T>) index;
           result = index3D.searchInRange(xReference.getLo(), xReference.getHi(), yReference.getLo(),
               yReference.getHi(), zReference.getLo(), zReference.getHi());
         }

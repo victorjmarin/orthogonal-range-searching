@@ -3,7 +3,7 @@ package edu.rit.search;
 import java.util.ArrayList;
 import java.util.List;
 import edu.rit.index.Point3D;
-import edu.rit.index.tree.RangeTree3D;
+import edu.rit.index.tree.RangeTree3D2;
 
 public class RangeTree3DPointTest {
 
@@ -23,8 +23,8 @@ public class RangeTree3DPointTest {
     final Point3D d3LoRef = new Point3D(0, 0, MIN_Z);
     final Point3D d3HiRef = new Point3D(0, 0, MAX_Z);
     long t1 = System.currentTimeMillis();
-    final RangeTree3D<Point3D> rtree =
-        new RangeTree3D<>(P, Point3D::getX, Point3D::getY, Point3D::getZ, Point3D::getId);
+    final RangeTree3D2<Point3D> rtree =
+        new RangeTree3D2<>(P, Point3D::getX, Point3D::getY, Point3D::getZ, Point3D::getId);
     long t2 = System.currentTimeMillis();
     System.out.println(t2 - t1 + " ms. to build the index.");
     t1 = System.currentTimeMillis();

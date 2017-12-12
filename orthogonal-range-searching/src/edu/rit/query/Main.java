@@ -43,7 +43,7 @@ public class Main {
     final List<Movie> movies = qEngine.runQuery(query);
     long toc = System.nanoTime();
     final double indexTime = ((toc - tic) * 1e-6);
-    System.out.print("(" + df.format(indexTime) + " ms) ");
+    System.out.print("(" + indexTime + " ms) ");
     System.out.println("(" + movies.size() + " matches)");
 
     tic = System.nanoTime();
@@ -63,10 +63,10 @@ public class Main {
     final RangeSearchQuery<Movie> query =
         new RangeSearchQuery<>(refBuilder).table(Table.MOVIES).xRange(Attribute.YEAR, 2000, 2015);
 
-    long tic = System.currentTimeMillis();
+    long tic = System.nanoTime();
     final List<Movie> movies = qEngine.runQuery(query);
-    long toc = System.currentTimeMillis();
-    final long indexTime = toc - tic;
+    long toc = System.nanoTime();
+    final double indexTime = ((toc - tic) * 1e-6);
     System.out.print("(" + indexTime + " ms) ");
     System.out.println("(" + movies.size() + " matches)");
 
@@ -85,10 +85,10 @@ public class Main {
     final RangeSearchQuery<Movie> query = new RangeSearchQuery<>(refBuilder).table(Table.MOVIES)
         .xRange(Attribute.RATING, 0, 7).yRange(Attribute.VOTES, 0, 500);
 
-    long tic = System.currentTimeMillis();
+    long tic = System.nanoTime();
     final List<Movie> movies = qEngine.runQuery(query);
-    long toc = System.currentTimeMillis();
-    final long indexTime = toc - tic;
+    long toc = System.nanoTime();
+    final double indexTime = ((toc - tic) * 1e-6);
     System.out.print("(" + indexTime + " ms) ");
     System.out.println("(" + movies.size() + " matches)");
 
@@ -107,16 +107,13 @@ public class Main {
   private static void threeDimensionQuery(final QueryEngine qEngine) {
     final ReferenceBuilder<Movie> refBuilder = new MovieReferenceBuilder();
     final RangeSearchQuery<Movie> query = new RangeSearchQuery<>(refBuilder).table(Table.MOVIES)
-        .xRange(Attribute.BUDGET, 30000, 50000).yRange(Attribute.YEAR, 1970, 2005)
+        .xRange(Attribute.BUDGET, 20000, 30000).yRange(Attribute.YEAR, 2000, 2005)
         .zRange(Attribute.RATING, 5, 7);
 
-    // SELECT count(*) FROM movies WHERE budget BETWEEN 10000 AND 50000 AND year BETWEEN 1970 AND
-    // 2005 AND imdb_rating BETWEEN 5.0 AND 7.0 AND id < 100000
-
-    long tic = System.currentTimeMillis();
+    long tic = System.nanoTime();
     final List<Movie> movies = qEngine.runQuery(query);
-    long toc = System.currentTimeMillis();
-    final long indexTime = toc - tic;
+    long toc = System.nanoTime();
+    final double indexTime = ((toc - tic) * 1e-6);
     System.out.print("(" + indexTime + " ms) ");
     System.out.println("(" + movies.size() + " matches)");
 

@@ -1,17 +1,17 @@
 package edu.rit.query;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public class IndexKey {
 
   private final String table;
-  private final Set<String> attributes;
+  private final List<String> attributes;
 
   public IndexKey(final String table, final String... attrs) {
     this.table = table.toLowerCase();
-    attributes = new HashSet<>();
+    attributes = new ArrayList<>();
     for (final String a : attrs) {
       attributes.add(a.toLowerCase());
     }
@@ -21,7 +21,7 @@ public class IndexKey {
     return table;
   }
 
-  public Set<String> getAttributes() {
+  public List<String> getAttributes() {
     return attributes;
   }
 

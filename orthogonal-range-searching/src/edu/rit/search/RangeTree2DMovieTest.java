@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import edu.rit.Movie;
 import edu.rit.db.IMDbSQLite;
-import edu.rit.index.tree.RangeTree2D;
+import edu.rit.index.tree.RangeTree2D2;
 
 public class RangeTree2DMovieTest {
 
@@ -12,8 +12,8 @@ public class RangeTree2DMovieTest {
     final Movie[] data = IMDbSQLite.getAllMovies();
     final List<Movie> ldata = Arrays.asList(data);
     long t1 = System.currentTimeMillis();
-    final RangeTree2D<Movie> rtree =
-        new RangeTree2D<>(ldata, Movie::getYear, Movie::getId, Movie::getId);
+    final RangeTree2D2<Movie> rtree =
+        new RangeTree2D2<>(ldata, Movie::getYear, Movie::getId, Movie::getId);
     long t2 = System.currentTimeMillis();
     System.out.println(t2 - t1 + " ms. to build the index.");
     final Movie d1LoRef = Movie.withYear(1900);

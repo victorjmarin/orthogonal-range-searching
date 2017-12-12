@@ -5,8 +5,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import edu.rit.index.Index;
 
-public class RangeTree3D<T> {
+public class RangeTree3D<T> implements Index {
 
   private final Comparator<T> auxd1cp;
   private final Comparator<T> auxd2cp;
@@ -19,8 +20,7 @@ public class RangeTree3D<T> {
   private final Function<T, Double> d3Getter;
   private final Function<T, Double> idGetter;
 
-  private final Node<T> t;
-
+  private final Node3D<T> t;
 
   public RangeTree3D(final List<T> P, final Function<T, Double> d1Getter,
       final Function<T, Double> d2Getter, final Function<T, Double> d3Getter,
@@ -72,29 +72,29 @@ public class RangeTree3D<T> {
     this.d3Getter = d3Getter;
     this.idGetter = idGetter;
     // Sort points using first dimension
-    Collections.sort(P, d1cp);
+    Collections.sort(P, auxd1cp);
     t = build3DRangeTree(P);
   }
 
-  private Node<T> build3DRangeTree(final List<T> P) {
+  private Node3D<T> build3DRangeTree(final List<T> P) {
     if (P.size() == 1) {
       final T element = P.get(0);
       final List<T> list = new ArrayList<>();
       list.add(element);
       final RangeTree2D<T> tree2d = new RangeTree2D<>(list, d2Getter, d3Getter, idGetter);
-      return new Node<>(element, tree2d);
+      return new Node3D<>(element, tree2d);
     }
     final T median = median(P);
     final List<T> L = smaller(P, median);
     final List<T> R = larger(P, median);
-    final Node<T> t = new Node<>(median);
+    final Node3D<T> t = new Node3D<>(median);
     t.left = build3DRangeTree(L);
     t.right = build3DRangeTree(R);
-    t.d2Tree = mergeDTree(t.left.d2Tree, t.right.d2Tree);
+    t.yTree = mergeYTree(t.left.yTree, t.right.yTree);
     return t;
   }
 
-  private RangeTree2D<T> mergeDTree(final RangeTree2D<T> t1, final RangeTree2D<T> t2) {
+  private RangeTree2D<T> mergeYTree(final RangeTree2D<T> t1, final RangeTree2D<T> t2) {
     final List<T> P = t1.getRoot().getLeaves();
     P.addAll(t2.getRoot().getLeaves());
     final RangeTree2D<T> result = new RangeTree2D<>(P, d2Getter, d3Getter, idGetter);
@@ -121,26 +121,26 @@ public class RangeTree3D<T> {
     return searchInRange(t, d1LoRef, d1HiRef, d2LoRef, d2HiRef, d3LoRef, d3HiRef);
   }
 
-  private List<T> searchInRange(final Node<T> t, final T d1LoRef, final T d1HiRef, final T d2LoRef,
+  private List<T> searchInRange(final Node3D<T> t, final T d1LoRef, final T d1HiRef, final T d2LoRef,
       final T d2HiRef, final T d3LoRef, final T d3HiRef) {
     final List<T> result = new ArrayList<>();
-    final Node<T> vSplit = findSplitNode(t, d1LoRef, d1HiRef);
+    final Node3D<T> vSplit = findSplitNode(t, d1LoRef, d1HiRef);
     if (vSplit.isLeaf()) {
       final boolean inRangeD1 = auxd1cp.compare(vSplit.element, d1LoRef) >= 0
           && auxd1cp.compare(vSplit.element, d1HiRef) <= 0;
       final boolean inRangeD2 =
-          d2cp.compare(vSplit.element, d2LoRef) >= 0 && d2cp.compare(vSplit.element, d2HiRef) <= 0;
+          auxd2cp.compare(vSplit.element, d2LoRef) >= 0 && auxd2cp.compare(vSplit.element, d2HiRef) <= 0;
       final boolean inRangeD3 =
-          d3cp.compare(vSplit.element, d3LoRef) >= 0 && d3cp.compare(vSplit.element, d3HiRef) <= 0;
+          auxd3cp.compare(vSplit.element, d3LoRef) >= 0 && auxd3cp.compare(vSplit.element, d3HiRef) <= 0;
       if (inRangeD1 && inRangeD2 && inRangeD3) {
         result.add(vSplit.element);
       }
     } else {
-      Node<T> v = vSplit.left;
+      Node3D<T> v = vSplit.left;
       while (!v.isLeaf()) {
         final boolean cp = auxd1cp.compare(d1LoRef, v.element) <= 0;
         if (cp) {
-          final List<T> part = queryD(v.right.d2Tree, d2LoRef, d2HiRef, d3LoRef, d3HiRef);
+          final List<T> part = queryY(v.right.yTree, d2LoRef, d2HiRef, d3LoRef, d3HiRef);
           result.addAll(part);
           v = v.left;
         } else {
@@ -150,9 +150,9 @@ public class RangeTree3D<T> {
       boolean inRangeD1 =
           auxd1cp.compare(v.element, d1LoRef) >= 0 && auxd1cp.compare(v.element, d1HiRef) <= 0;
       boolean inRangeD2 =
-          d2cp.compare(v.element, d2LoRef) >= 0 && d2cp.compare(v.element, d2HiRef) <= 0;
+          auxd2cp.compare(v.element, d2LoRef) >= 0 && auxd2cp.compare(v.element, d2HiRef) <= 0;
       boolean inRangeD3 =
-          d3cp.compare(v.element, d3LoRef) >= 0 && d3cp.compare(v.element, d3HiRef) <= 0;
+          auxd3cp.compare(v.element, d3LoRef) >= 0 && auxd3cp.compare(v.element, d3HiRef) <= 0;
       if (inRangeD1 && inRangeD2 && inRangeD3) {
         result.add(v.element);
       }
@@ -161,7 +161,7 @@ public class RangeTree3D<T> {
       while (!v.isLeaf()) {
         final boolean cp = auxd1cp.compare(d1HiRef, v.element) >= 0;
         if (cp) {
-          final List<T> part = queryD(v.left.d2Tree, d2LoRef, d2HiRef, d3LoRef, d3HiRef);
+          final List<T> part = queryY(v.left.yTree, d2LoRef, d2HiRef, d3LoRef, d3HiRef);
           result.addAll(part);
           v = v.right;
         } else {
@@ -170,8 +170,8 @@ public class RangeTree3D<T> {
       }
       inRangeD1 =
           auxd1cp.compare(v.element, d1LoRef) >= 0 && auxd1cp.compare(v.element, d1HiRef) <= 0;
-      inRangeD2 = d2cp.compare(v.element, d2LoRef) >= 0 && d2cp.compare(v.element, d2HiRef) <= 0;
-      inRangeD3 = d3cp.compare(v.element, d3LoRef) >= 0 && d3cp.compare(v.element, d3HiRef) <= 0;
+      inRangeD2 = auxd2cp.compare(v.element, d2LoRef) >= 0 && auxd2cp.compare(v.element, d2HiRef) <= 0;
+      inRangeD3 = auxd3cp.compare(v.element, d3LoRef) >= 0 && auxd3cp.compare(v.element, d3HiRef) <= 0;
       if (inRangeD1 && inRangeD2 && inRangeD3) {
         result.add(v.element);
       }
@@ -179,7 +179,7 @@ public class RangeTree3D<T> {
     return result;
   }
 
-  private Node<T> findSplitNode(Node<T> T, final T x, final T xp) {
+  private Node3D<T> findSplitNode(Node3D<T> T, final T x, final T xp) {
     boolean cp1;
     while (!T.isLeaf()
         && ((cp1 = auxd1cp.compare(xp, T.element) < 0) || auxd1cp.compare(x, T.element) > 0)) {
@@ -191,9 +191,9 @@ public class RangeTree3D<T> {
     return T;
   }
 
-  private List<T> queryD(final RangeTree2D<T> t, final T d2LoRef, final T d2HiRef, final T d3LoRef,
+  private List<T> queryY(final RangeTree2D<T> t, final T d2LoRef, final T d2HiRef, final T d3LoRef,
       final T d3HiRef) {
-    return t.searchInRange2(d2LoRef, d2HiRef, d3LoRef, d3HiRef);
+    return t.searchInRange(d2LoRef, d2HiRef, d3LoRef, d3HiRef);
   }
 
 }
