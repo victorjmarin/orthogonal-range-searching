@@ -61,7 +61,7 @@
     
     <p>The last step involves using the selected index to answer the query. The query is also answered performing a full-scan of the data to check that the number of movies returned by the index is correct and compare running times.</p>
     
-    <p>Below are the outputs when running three different queries with one, two and three constrained fields. We can notice how, as the number of fields increase, the speed up gained by using and index is considerably higher. In particular, the query is answered 5.72 times faster using an index for one constrained field; 58.21 times faster for two constrained fields, and 82.25 times faster for three constrained fields.</p>
+    <p>Below are the outputs when running three different queries with one, two and three constrained fields. We can notice how, as the number of fields increases, the speed-up gained by using and index is considerably higher. In particular, the query is answered 5.72 times faster using an index for one constrained field; 58.21 times faster for two constrained fields, and 82.25 times faster for three constrained fields.</p>
     
     <p><b>Query on one constrained field</b></p>
     
@@ -83,11 +83,11 @@
     
     <h3>One-dimensional indexes</h3>
     
-    Indexes on one dimension (field) are constructed using an <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL tree</a> structure, which is a kind of balanced binary tree. They have a <i>O</i>(<i>k</i> + log <i>n</i>) time complexity to report all points in a given range, where <i>k</i> is the number of points reported and <i>n</i> the total number of points. We modify <a href="http://commons.apache.org/proper/commons-math/javadocs/api-3.3/org/apache/commons/math3/geometry/partitioning/utilities/AVLTree.html">this</a> implementation to accept any comparator instead of relying on a comparable object so that we can build indexes on different fields. We use the customized implementation as a base for two- and three-dimensional indexes.
+    Indexes on one dimension (field) are constructed using an <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL tree</a> structure, which is a kind of balanced binary tree. They take <i>O</i>(<i>k</i> + log <i>n</i>) time complexity to report all points in a given range, where <i>k</i> is the number of points reported and <i>n</i> the total number of points. We modify <a href="http://commons.apache.org/proper/commons-math/javadocs/api-3.3/org/apache/commons/math3/geometry/partitioning/utilities/AVLTree.html">this</a> implementation to accept any comparator instead of relying on a comparable object so that we can build indexes on different fields. We use the customized implementation as a base for two- and three-dimensional indexes.
     
     <h3>Two-dimensional indexes</h3>
     
-    Indexes on two dimensions (fields) are constructed using a 2-dimensional <a href="https://en.wikipedia.org/wiki/Range_tree">range tree</a> structure. A range tree is a multi-level structure comprised of several balanced binary trees. In the case of a 2-dimensional range tree, we first build an AVL tree on the first dimension, and link each of the nodes in the first dimensional to another AVL tree built on the second dimension. Thus, the time complexity to report all points in a range is <i>O</i>(<i>k</i> + log<sup>2</sup> <i>n</i>).
+    Indexes on two dimensions (fields) are constructed using a 2-dimensional <a href="https://en.wikipedia.org/wiki/Range_tree">range tree</a> structure. A range tree is a multi-level structure comprised of several balanced binary trees. In the case of a 2-dimensional range tree, we first build an AVL tree on the first dimension, and link each of the nodes in the first dimension to another AVL tree built on the second dimension. Thus, the time complexity to report all points in a range is <i>O</i>(<i>k</i> + log<sup>2</sup> <i>n</i>).
     
     <h3>Three-dimensional indexes</h3>
     
@@ -95,7 +95,7 @@
     
     <h3>Query times</h3>
     
-    <p>Below are the query times for different numbers of movies using indexes of 1, 2 and 3 dimensions. At first sight, it might be shocking that the 3-dimensional index is consistently taking less time to answer queries when its complexity is superior. Recall, however, that the time complexity not only depends on the number of points <i>n</i>, but also on the number of reported points <i>k</i>. The one-dimensional index reported 46,000 movies on average, the two-dimensional index 2,700, and the three-dimensional index 20. Therefore, we can see that the three-dimensional index is reporting a considerably smaller number of movies and taking less time to answer the query in spite of the higher order logarithmic factor. The 1- and 2-dimensional indexes are taking similar times but the 1-dimensional is reporting many more movies.</p>
+    <p>Below are the query times for different number of movies using indexes on 1, 2 and 3 dimensions. At first sight, it might be shocking that the 3-dimensional index is consistently taking less time to answer queries when its complexity is superior. Recall, however, that the time complexity not only depends on the number of points <i>n</i>, but also on the number of reported points <i>k</i>. The one-dimensional index reported 46,000 movies on average, the two-dimensional index 2,700, and the three-dimensional index 20. Therefore, we can see that the three-dimensional index is reporting a considerably smaller number of movies and taking less time to answer the query in spite of the higher order logarithmic factor. The 1- and 2-dimensional indexes are taking similar times but the 1-dimensional index is reporting many more movies.</p>
     
     <img src="time.png" alt="3D" height="420" width="560">
     
@@ -106,9 +106,9 @@
     Potential improvements include:
     
         <ul>
-            <li>Support more than three dimensions (MySQL supports up to 16)</li>
-            <li>Optimize index construction</li>
-            <li>Reuse indexes when leftmost prefix matches</li>
+            <li>Support more than three dimensions (MySQL supports up to 16).</li>
+            <li>Optimize index construction.</li>
+            <li>Reuse indexes when leftmost prefix matches.</li>
         </ul>
     
     <hr>
